@@ -1,13 +1,15 @@
-#define OEMRESOURCE
+﻿#define OEMRESOURCE
 #include <windows.h>
 #include <strsafe.h>
-#include "resource.h" // Include the resource header
+#include "resource.h" 
+#define UNICODE
+#define _UNICODE
 
 HINSTANCE   g_instance;
 HCURSOR     g_hc_ibeam;
 UINT_PTR    g_timer = NULL;
 DWORD       g_layout = 0;
-NOTIFYICONDATA g_notifyIconData;
+NOTIFYICONDATAW g_notifyIconData;
 HMENU       g_hMenu;
 
 void CALLBACK UpdateTimer(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
@@ -74,7 +76,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int Main()
 {
-    HANDLE mutex = CreateMutex(NULL, FALSE, "Mova");
+    HANDLE mutex = CreateMutex(NULL, FALSE, L"Mova"); 
     if (GetLastError() == ERROR_ALREADY_EXISTS || GetLastError() == ERROR_ACCESS_DENIED) return 1;
 
     g_hc_ibeam = CopyCursor(LoadCursor(NULL, IDC_IBEAM));
@@ -84,27 +86,27 @@ int Main()
     g_timer = SetTimer(NULL, g_timer, 200, UpdateTimer);
     if (!g_timer) return 1;
 
-    WNDCLASS wc = { 0 };
+    WNDCLASSW wc = { 0 }; // Використовуємо WNDCLASSW для підтримки Unicode
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = g_instance;
-    wc.hIcon = LoadIcon(g_instance, MAKEINTRESOURCE(IDI_APP_ICON)); // Set application icon
-    wc.lpszClassName = "LangCursorClass";
-    RegisterClass(&wc);
+    wc.hIcon = LoadIcon(g_instance, MAKEINTRESOURCE(IDI_APP_ICON));
+    wc.lpszClassName = L"LangCursorClass";
+    RegisterClassW(&wc);
 
-    HWND hWnd = CreateWindow("LangCursorClass", "Mova", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, g_instance, NULL);
+    HWND hWnd = CreateWindowW(L"LangCursorClass", L"Mova", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, g_instance, NULL);
     if (!hWnd) return 1;
 
     g_hMenu = CreatePopupMenu();
-    AppendMenu(g_hMenu, MF_STRING, ID_TRAY_EXIT, "�����");
+    AppendMenuW(g_hMenu, MF_STRING, ID_TRAY_EXIT, L"Вихід");
 
-    g_notifyIconData.cbSize = sizeof(NOTIFYICONDATA);
+    g_notifyIconData.cbSize = sizeof(NOTIFYICONDATAW);
     g_notifyIconData.hWnd = hWnd;
     g_notifyIconData.uID = 1;
     g_notifyIconData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
     g_notifyIconData.uCallbackMessage = WM_USER + 1;
-    g_notifyIconData.hIcon = LoadIcon(g_instance, MAKEINTRESOURCE(IDI_TRAY_ICON)); // Set tray icon
-    StringCchCopy(g_notifyIconData.szTip, ARRAYSIZE(g_notifyIconData.szTip), "Mova");
-    Shell_NotifyIcon(NIM_ADD, &g_notifyIconData);
+    g_notifyIconData.hIcon = LoadIcon(g_instance, MAKEINTRESOURCE(IDI_TRAY_ICON));
+    StringCchCopyW(g_notifyIconData.szTip, ARRAYSIZE(g_notifyIconData.szTip), L"Mova");
+    Shell_NotifyIconW(NIM_ADD, &g_notifyIconData); // Використовуємо Shell_NotifyIconW для Unicode
 
     MSG msg;
     while (GetMessage(&msg, 0, 0, 0))
