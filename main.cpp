@@ -114,7 +114,8 @@ int Main()
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
-
+    
+    SetSystemCursor(CopyCursor(g_hc_ibeam), OCR_IBEAM); // Повертаємо курсор в початковий стан перед вимкненням
     DestroyCursor(g_hc_ibeam);
     return 0;
 }
